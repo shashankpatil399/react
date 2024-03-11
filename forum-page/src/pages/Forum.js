@@ -22,7 +22,7 @@ export default function Forum() {
             .then((res) => setList(res.data));
     }, []);
 
-
+console.log(' List ', list);
 
   // let { id } = useParams();
   const handleSubmit = async (event) => {
@@ -58,19 +58,28 @@ export default function Forum() {
                       <th>Email</th>
                         <th>Password</th>
                       <th>Mobile</th>
-                    <th>Type</th>
+                      <th>Update</th>
+                      <th>delete</th>
+                   
                     </tr>
                 </thead>
                 <tbody>
                     {list.map((value, key) => {
                         return (
                             <tr key={key}>
-                              <td>{value.image}</td>
+                              <td>{value.image && (
+                  <img
+                    src={`http://localhost:8010/upload/images/${value.image}`}
+                    alt={value.name}
+                    style={{ width: "50px", height: "50px" }}
+                  />
+                )}
+</td>
                                 <td>{value.name}</td>
                                 <td>{value.email}</td>
                                 <td>{value.password}</td>
                                 <td>{value.mobile}</td>
-                                <td>{value.type}</td>
+                               
                                 <td >
  <Link to={`/update/${value._id}`} > Update</Link>
                                    </td>

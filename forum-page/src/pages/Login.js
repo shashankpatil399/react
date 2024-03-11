@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link,useNavigate} from 'react-router-dom';
-
-
+import { useDispatch} from 'react-redux';
+import { loginSuccess,loginFailure } from '../redux/reducer';
+// import { response } from 'express';
 function Login() {
 
   const navigate = useNavigate();
- 
+  const dispatch = useDispatch();
   const [loginData, setLoginData] = useState({
     email: '',
     password: '',
@@ -49,7 +50,7 @@ function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     
-    if (validateForm()) {
+    // if (validateForm()) {
       try {
         const url = 'http://localhost:8010/Login';
         const response = await axios.post(url, loginData, {
@@ -59,16 +60,21 @@ function Login() {
         });
   
         if (response.status === 200) {
+       dispatch(loginSuccess({token : response.data.token}));
           console.log('Login successful');
           // Save the token to local storage
           saveTokenToLocalStorage(response.data.token);
         } else {
+       dispatch(loginFailure({error: "login failed"}));
           console.log('Invalid credentials or unexpected response status:', response.status);
         }
-      } catch (error) {
+      } 
+      catch (error) {
+       dispatch(loginFailure({error: "login unsec"}));
+
         console.error('Error:', error);
       }
-    }
+    // }
   };
   
 

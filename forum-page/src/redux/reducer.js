@@ -1,40 +1,48 @@
-import { REGISTER_USER_REQUEST, REGISTER_USER_SUCCESS, REGISTER_USER_FAILURE } from "./action";
-
+import { createSlice,  } from '@reduxjs/toolkit';
+//import axios from 'axios';
+// import { registerUser } from './action'
 const initialState = {
-    loading: false,
-    error: null
+  loading: false,
+  token: null,
+  isLogin:null,
+  error: null,
+ 
 };
 
-const registrationReducer = (state = initialState, action) => {
-    switch (action.type) {
-        case REGISTER_USER_REQUEST:
-            return {
-                ...state,
-                loading: true,
-                error: null
-            };
-        case REGISTER_USER_SUCCESS:
-            return{
-                ...state,
-                loading:false
-            }     
 
-        case REGISTER_USER_FAILURE:
-            return {
-                ...state,
-                loading:false,
-                error : action.payload
-            }
-default:
-    return state ;
-            
+const userSlice = createSlice({
+  name: 'user',
+  initialState,
+  reducers: {
 
-        }
-    }
+    addData: (state, action) => {
+      const list = {
+     
+        data: action.payload,
+      };
+      console.log(action.payload, "DATA");
+      state.data = action.payload;
+    },
+loginSuccess : (state,action)=>{
+  state.isLogin = true;
+  state.error = null;
+  state.token = action.payload.token;
 
+},
 
-    export default registrationReducer
+loginFailure : (state,action)=>{
+  state.isLogin = false;
+  state.error = action.payload.error;
+state.token = null;
+}
 
 
-    
+  },
+ });
 
+
+ 
+
+export const {loginSuccess,loginFailure, addData} = userSlice.actions;
+
+export default userSlice.reducer;

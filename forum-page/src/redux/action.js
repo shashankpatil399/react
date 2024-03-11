@@ -1,21 +1,34 @@
-export const REGISTER_USER_REQUEST = "REGISTER_USER_REQUEST";
-export const REGISTER_USER_SUCCESS = "REGISTER_USER_SUCCESS";
-export const REGISTER_USER_FAILURE = "REGISTER_USER_FAILURE";
+import axios from "axios";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+export const registerUser = createAsyncThunk(
+    'user/registerUser',
+    async (formData, { rejectWithValue}) => {
+      try {
+        const response = await axios.post('http://localhost:8010/addUser', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+        });
+        
+        if(response.data.status=== 201)
+        {
+          return 'success'
+        }
 
 
-export const registerRequest = ()=>({
+        if (response.data.status === 200) {
+          // Handle duplicate email
+          return 'Email already exists';
+        }
 
-    type : REGISTER_USER_REQUEST,
-});
+        console.log('I am in rrrs ',response);
 
-export const registerSuccess = ()=> ({
+  
+        return response.data;
+      } catch (error) {
+        return rejectWithValue(error.message);
+      }
+    }
+  );
 
-    type :REGISTER_USER_SUCCESS,
-});
 
-export const registerFailure = (error) => ({
-
-    type:REGISTER_USER_FAILURE,
-    payload : error,
-});
- 

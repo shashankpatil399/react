@@ -1,185 +1,411 @@
-import { connect } from 'react-redux';
+import React, { useState } from "react";
+//import axios from "axios";
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch,useSelector } from 'react-redux';
+import { registerUser } from '../redux/action'; // Assuming you create a userSlice.js file
 
-import React, { useState } from 'react';
-import axios from 'axios';
 
-import { registerRequest, registerSuccess, registerFailure } from '../redux/action';
+function Register() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+const loading = useSelector((state) => state.user.loading);
+ // const error = useSelector((state) => state.user.error);
 
-
-function Register({
-
-registerRequest,
-registerSuccess,
-registerFailure 
-
-}){
-  const [userData, setUserData] = useState({
-  
-    name: '',
-    email: '',
-    mobile: '',
-    father: '',
-    image: '',
-    password: ''
-    
+  const [state, setState] = useState({
+    name: "",
+    email: "",
+    password: "",
+    mobile: "",
+    image: ""
   });
-  console.log("user detail",userData);
+
   const [errors, setErrors] = useState({
-    name: '',
-    email: '',
-    mobile: '',
-    father: '',
-    password: '',
-    image:''
-});
+    name: "",
+    email: "",
+    password: "",
+    mobile: "",
+    image: ""
+  });
 
+  const handleInputChange = (event) => {
+    const { name, value, type, files } = event.target;
+    if (type === 'file') {
+      setState((prev) => ({ ...prev, [name]: files[0] }));
+    } else {
+      setState((prev) => ({ ...prev, [name]: value }));
+    }
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
 
-
-const handleChange = (event) => {
-  const { name, value, type, files } = event.target;
-  if (type === 'file') {
-    setUserData((prev) => ({ ...prev, [name]: files[0] }));
-  } else {
-    setUserData((prev) => ({ ...prev, [name]: value }));
-  }
-  setErrors((prev) => ({ ...prev, [name]: ""}));
-};
-
-
- 
-
-  const validateForm = () => {
+  const validate = () => {
     let isValid = true;
     let newErrors = {};
 
-    if (!userData.name.trim()) {
+    if (!state.name.trim()) {
       newErrors.name = 'Name is required';
       isValid = false;
     }
 
-    if (!userData.email.trim()) {
+    if (!state.email.trim()) {
       newErrors.email = 'Email is required';
-      isValid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email.trim())) {
-      newErrors.email = 'Invalid email format';
       isValid = false;
     }
 
-    if (!userData.mobile.trim()) {
+    if (!state.password.trim()) {
+      newErrors.password = 'Password is required';
+      isValid = false;
+    } else if (state.password.trim().length < 8) {
+      newErrors.password = 'Password should be at least 8 characters long';
+      isValid = false;
+    }
+
+    if (!state.mobile.trim()) {
       newErrors.mobile = 'Mobile number is required';
       isValid = false;
-    } else if (!/^\d{10}$/.test(userData.mobile.trim())) {
+    } else if (!/^\d{10}$/.test(state.mobile.trim())) {
       newErrors.mobile = 'Invalid mobile number';
       isValid = false;
     }
 
-    if (!userData.father.trim()) {
-      newErrors.father = 'Father\'s name is required';
-      isValid = false;
-    }
-
-    if (!userData.password.trim()) {
-      newErrors.password = 'Password is required';
-      isValid = false;
-    } else if (userData.password.trim().length < 8) {
-      newErrors.password = 'Password should be at least 8 characters long';
-      isValid = false;
-    }
+ 
 
     setErrors(newErrors);
     return isValid;
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    let formData =new FormData();
-    formData.append("name",userData.name)
-    formData.append("email",userData.email)
-    formData.append("mobile",userData.mobile)
-    formData.append("father",userData.father)
-    formData.append("image",userData.image)
-    formData.append("password",userData.password)
 
+  const [imagePreviews, setImagePreviews] = useState({});
 
-    if (validateForm()) {
-      try {
+  const handleImageChange = (file, userId) => {
+    const reader = new FileReader();
 
-        registerRequest();
-        const url = 'http://localhost:8010/addUser'
-        const response = await axios.post(url, formData, {
-          headers: {
-            'Content-Type': "multipart/form-data"
-          },
-        });
+    reader.onloadend = () => {
+      setImagePreviews((prev) => ({
+        ...prev,
+        [userId]: reader.result,
+      }));
+    };
 
-        if (response.data.status === 200) {
-          registerSuccess();
-          console.log('User registered successfully');
-        }
-      } catch (error) {
-        registerFailure();  
-        console.log('Error:', error);
-      }
-    }
+    reader.readAsDataURL(file);
   };
 
-  return (
-    <form onSubmit={handleSubmit}>
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    let formData = new FormData();
+    formData.append("name", state.name);
+    formData.append("email", state.email);
+    formData.append("password", state.password);
+    formData.append("mobile", state.mobile);
+    formData.append("image", state.image);
 
+    if (validate()) {
+      try {
+        const response = await dispatch(registerUser(formData));
+        console.log(response);
+        if (response.payload==='success') {
+          console.log("user is inserted Successfully");
+          navigate('/Login');
+        }
+       
 
-      <label>
-        Name:
-        <input type="text" name="name" value={FormData.name} onChange={handleChange} />
-        <span style={{ color: 'red' }}>{errors.name}</span>
-      </label>
-      <br />
-      <label>
-        Email:
-        <input type="email" name="email" value={FormData.email} onChange={handleChange} />
-        <span style={{ color: 'red' }}>{errors.email}</span>
-      </label>
-      <br />
-      <label>
-        Mobile No.:
-        <input type="text" name="mobile" value={FormData.mobile} onChange={handleChange} />
-        <span style={{ color: 'red' }}>{errors.mobile}</span>
-      </label>
-      <br />
-      <label>
-        Father Name:
-        <input type="text" name="father" value={FormData.father} onChange={handleChange} />
-        <span style={{ color: 'red' }}>{errors.father}</span>
-      </label>
-      <br />
-      <label>
-       Image:
-        <input type="file" name='image' onChange={handleChange} />
+        
+       
+        // unwrapResult(response);
+        // console.log(response);
+      } catch (error) {
+        console.log("error", error);
+      }
+     
+    } 
+
+  //   else {
+  //     console.log("Validation failed");
+  //     // Handle the case where validation fails
+  //   }
+  
+  //   // Add another if statement here if needed
+  //   const response = await dispatch(registerUser(formData));
+  //   if  (response.payload==='Email already exists') {
+  //     console.log("user is inserted Successfully");
       
-      </label>
+  //   }  else {
+  //     // Code to execute if someCondition is false
+  //   }
+  };
+   
+  
+  
 
-<br/>
+  return (
+    <div className="Auth-form-container">
+      <form className="Auth-form" onSubmit={handleSubmit}>
+        <div className="Auth-form-content">
+          <h3 className="Auth-form-title">Sign Up</h3>
 
-      <label>
-       Password:
-        <input type="password" name="password" value={FormData.password} onChange={handleChange} />
-        <span style={{ color: 'red' }}>{errors.password}</span>
-      </label>
-      <br />
-      <button type="submit">Submit</button>
-    </form>
+          <div className="form-group mt-3">
+            <label>Name</label>
+            <input
+              type="text"
+              name="name"
+              placeholder='Enter Name'
+              value={state.name}
+              onChange={handleInputChange}
+            />
+            <span style={{ color: 'red' }}>{errors.name}</span>
+          </div>
+          <div className="form-group mt-3">
+            <label>Email</label>
+            <input
+              type="text"
+              name="email"
+              placeholder='Enter Email'
+             
+              value={state.email}
+              onChange={handleInputChange}
+            />
+            <span style={{ color: 'red' }}>{errors.email}</span>
+          </div>
+          <div className="form-group mt-3">
+            <label>Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder='Enter Password'
+              autoComplete="current-password"
+              value={state.password}
+              onChange={handleInputChange}
+            />
+            <span style={{ color: 'red' }}>{errors.password}</span>
+          </div>
+
+          <div className="form-group mt-3">
+            <label>Mobile</label>
+            <input
+              type="text"
+              name="mobile"
+              placeholder='Enter Mobile'
+              value={state.mobile}
+              onChange={handleInputChange}
+            />
+            <span style={{ color: 'red' }}>{errors.mobile}</span>
+          </div>
+
+      
+          <div className="form-group mt-3">
+  <label>Image</label>
+  <input
+    type="file"
+    name="image"
+    onChange={(e) => {
+      handleInputChange(e);
+      handleImageChange(e.target.files[0], state.email); // Assuming email is unique
+    }}
+  />
+  {imagePreviews[state.email] && (
+    <img
+      src={imagePreviews[state.email]}
+      alt="Preview"
+      style={{ maxWidth: '80%', maxHeight: '60px', marginTop: '5px' }}
+    />
+  )}
+</div>
+ 
+ <div className="form-control">
+    <label></label>
+    <button type="submit" disabled={loading}>Submit</button>
+     </div>
+          <p className="text-center">Already have an account? <Link to="/Login">Login Here</Link></p>
+        </div>
+      </form>
+    </div>
   );
 }
+export default Register;
 
-const mapStateToProps = (state) => ({
-  loading: state.loading,
-  error: state.error,
-});
 
-export default connect(mapStateToProps, {
-  registerRequest,
-  registerSuccess,
-  registerFailure
-})(Register);
+
+// import { connect } from 'react-redux';
+
+// import React, { useState } from 'react';
+// // import axios from 'axios';
+// import { useDispatch,useSelector } from 'react-redux';
+// import { registerUser } from '../redux/Actions'; 
+
+
+
+
+// function Register({
+//   const dispatch = useDispatch();
+//   const navigate = useNavigate();
+// const loading = useSelector((state) => state.user.loading);
+//  // const error = useSelector((state) => state.user.error);
+
+
+// }){
+//   const [userData, setUserData] = useState({
+  
+//     name: '',
+//     email: '',
+//     mobile: '',
+//     father: '',
+//     image: '',
+//     password: ''
+    
+//   });
+//   console.log("user detail",userData);
+//   const [errors, setErrors] = useState({
+//     name: '',
+//     email: '',
+//     mobile: '',
+//     father: '',
+//     password: '',
+//     image:''
+// });
+
+
+
+// const handleChange = (event) => {
+//   const { name, value, type, files } = event.target;
+//   if (type === 'file') {
+//     setUserData((prev) => ({ ...prev, [name]: files[0] }));
+//   } else {
+//     setUserData((prev) => ({ ...prev, [name]: value }));
+//   }
+//   setErrors((prev) => ({ ...prev, [name]: ""}));
+// };
+
+
+ 
+
+//   const validateForm = () => {
+//     let isValid = true;
+//     let newErrors = {};
+
+//     if (!userData.name.trim()) {
+//       newErrors.name = 'Name is required';
+//       isValid = false;
+//     }
+
+//     if (!userData.email.trim()) {
+//       newErrors.email = 'Email is required';
+//       isValid = false;
+//     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email.trim())) {
+//       newErrors.email = 'Invalid email format';
+//       isValid = false;
+//     }
+
+//     if (!userData.mobile.trim()) {
+//       newErrors.mobile = 'Mobile number is required';
+//       isValid = false;
+//     } else if (!/^\d{10}$/.test(userData.mobile.trim())) {
+//       newErrors.mobile = 'Invalid mobile number';
+//       isValid = false;
+//     }
+
+//     if (!userData.father.trim()) {
+//       newErrors.father = 'Father\'s name is required';
+//       isValid = false;
+//     }
+
+//     if (!userData.password.trim()) {
+//       newErrors.password = 'Password is required';
+//       isValid = false;
+//     } else if (userData.password.trim().length < 8) {
+//       newErrors.password = 'Password should be at least 8 characters long';
+//       isValid = false;
+//     }
+
+//     setErrors(newErrors);
+//     return isValid;
+//   };
+
+//   const handleSubmit = async (event) => {
+//     event.preventDefault();
+//     let formData =new FormData();
+//     formData.append("name",userData.name)
+//     formData.append("email",userData.email)
+//     formData.append("mobile",userData.mobile)
+//     formData.append("father",userData.father)
+//     formData.append("image",userData.image)
+//     formData.append("password",userData.password)
+
+
+//     if (validate()) {
+//       try {
+//         const response = await dispatch(registerUser(formData));
+//         console.log(response);
+//         if (response.payload==='seccuss') {
+//           console.log("user is inserted Successfully");
+//           navigate('/Login');
+//         }
+//         else{
+//           console.log('',response)
+//         }
+//         // unwrapResult(response);
+//         // console.log(response);
+//       } catch (error) {
+//         console.log("error", error);
+//       }
+//     }
+//   };
+
+//   return (
+//     <form onSubmit={handleSubmit}>
+
+
+//       <label>
+//         Name:
+//         <input type="text" name="name" value={FormData.name} onChange={handleChange} />
+//         <span style={{ color: 'red' }}>{errors.name}</span>
+//       </label>
+//       <br />
+//       <label>
+//         Email:
+//         <input type="email" name="email" value={FormData.email} onChange={handleChange} />
+//         <span style={{ color: 'red' }}>{errors.email}</span>
+//       </label>
+//       <br />
+//       <label>
+//         Mobile No.:
+//         <input type="text" name="mobile" value={FormData.mobile} onChange={handleChange} />
+//         <span style={{ color: 'red' }}>{errors.mobile}</span>
+//       </label>
+//       <br />
+//       <label>
+//         Father Name:
+//         <input type="text" name="father" value={FormData.father} onChange={handleChange} />
+//         <span style={{ color: 'red' }}>{errors.father}</span>
+//       </label>
+//       <br />
+//       <label>
+//        Image:
+//         <input type="file" name='image' onChange={handleChange} />
+      
+//       </label>
+
+// <br/>
+
+//       <label>
+//        Password:
+//         <input type="password" name="password" value={FormData.password} onChange={handleChange} />
+//         <span style={{ color: 'red' }}>{errors.password}</span>
+//       </label>
+//       <br />
+//       <button type="submit">Submit</button>
+//     </form>
+//   );
+// }
+
+// const mapStateToProps = (state) => ({
+//   loading: state.loading,
+//   error: state.error,
+// });
+
+// export default connect(mapStateToProps, {
+//   registerRequest,
+//   registerSuccess,
+//   registerFailure
+// })(Register);
 
 
 

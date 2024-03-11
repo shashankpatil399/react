@@ -1,14 +1,11 @@
-import  { createStore, applyMiddleware} from "redux";
-import thunk from 'redux-thunk';
+import { configureStore } from "@reduxjs/toolkit";
+import authSlice from "./reducer"; // Assuming you have a userReducer file
 
-import registrationReducer from "./reducer";
-
-
-
-const store = createStore(
-registrationReducer
-
-);
-
+const store = configureStore({
+    reducer:{
+        todos: authSlice, // Assuming userReducer is the reducer function for the 'user' slice
+        user: authSlice,
+    }
+});
 
 export default store;

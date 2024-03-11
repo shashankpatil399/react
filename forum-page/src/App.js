@@ -6,8 +6,6 @@
 // import Update from './pages/Update';  
 // import Register from './pages/Register'; 
 // import { Provider } from 'react-redux';
-
-
 // const routes = [
 //   {
 //     path: '/',
